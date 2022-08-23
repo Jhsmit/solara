@@ -14,6 +14,7 @@ import ipywidgets
 from . import app, reload, settings
 
 logger = logging.getLogger("solara.server.app")
+ipywidget_version_major = int(ipywidgets.__version__.split(".")[0])
 
 
 class FakeIPython:
@@ -242,7 +243,10 @@ def patch():
     component_mod_vue.vue_component_registry = context_dict_user("vue_component_registry")  # type: ignore
     component_mod_vue.vue_component_files = context_dict_user("vue_component_files")  # type: ignore
 
-    ipywidgets.widget.Widget.widgets = context_dict_widgets()  # type: ignore
+    if ipywidget_version_major < 8:
+        ipywidgets.widget.Widget.widgets = context_dict_widgets()  # type: ignore
+    else:
+        ipywidgets.widget.Widget._instances = context_dict_widgets()  # type: ignore
     threading.Thread.__init__ = WidgetContextAwareThread__init__  # type: ignore
     threading.Thread.run = Thread_debug_run  # type: ignore
     # on CI we get a mypy error:

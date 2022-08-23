@@ -184,7 +184,15 @@ export class WidgetManager extends JupyterLabManager {
       moduleName === '@jupyter-widgets/controls' ||
       moduleName === '@jupyter-widgets/output'
     ) {
-      return super.loadClass(className, moduleName, moduleVersion);
+      const core = {
+        '@jupyter-widgets/base': base,
+        '@jupyter-widgets/controls': controls,
+        '@jupyter-widgets/output': output
+      }
+      // instead of the correct, we just return the module we are compiled with
+      // return super.loadClass(className, moduleName, moduleVersion);
+      //@ts-ignore
+      return core[moduleName][className];
     } else {
       // TODO: code duplicate from HTMLWidgetManager, consider a refactor
       return this._loader(moduleName, moduleVersion).then(module => {
@@ -209,21 +217,6 @@ export class WidgetManager extends JupyterLabManager {
   }
 
   private _registerWidgets(): void {
-    this.register({
-      name: '@jupyter-widgets/base',
-      version: base.JUPYTER_WIDGETS_VERSION,
-      exports: base as any
-    });
-    this.register({
-      name: '@jupyter-widgets/controls',
-      version: controls.JUPYTER_CONTROLS_VERSION,
-      exports: controls as any
-    });
-    this.register({
-      name: '@jupyter-widgets/output',
-      version: output.OUTPUT_WIDGET_VERSION,
-      exports: output as any
-    });
     // do this not top level, since requirejs might be loaded after this module is loaded
     if (typeof window !== 'undefined' && typeof window.define !== 'undefined') {
       window.define('@jupyter-widgets/base', base);
